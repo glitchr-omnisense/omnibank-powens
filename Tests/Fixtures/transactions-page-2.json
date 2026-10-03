@@ -1,0 +1,38 @@
+{
+  "transactions": [
+    {
+      "id": 880103,
+      "id_account": 4211,
+      "date": "2026-09-03",
+      "vdate": "2026-09-02",
+      "rdate": "2026-09-02",
+      "value": -3.5,
+      "type": "card",
+      "original_wording": "PAIEMENT CB 0209 PARIS CAFE DE LA GARE",
+      "simplified_wording": "CAFE DE LA GARE",
+      "wording": "Cafe De La Gare",
+      "coming": false,
+      "deleted": null,
+      "card": "XXXX4242",
+      "counterparty": null
+    },
+    {
+      "id": 880104,
+      "id_account": 4211,
+      "date": "2026-10-02",
+      "vdate": null,
+      "rdate": "2026-09-30",
+      "value": -120.5,
+      "type": "deferred_card",
+      "original_wording": "CB DIFFERE SEPTEMBRE",
+      "wording": "Cb Differe Septembre",
+      "coming": true,
+      "deleted": null
+    }
+  ],
+  "first_date": "2026-09-01",
+  "last_date": "2026-09-30",
+  "result_min_date": "2026-09-03",
+  "result_max_date": "2026-10-02",
+  "_links": {"next": null}
+}

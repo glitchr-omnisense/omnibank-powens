@@ -1,0 +1,18 @@
+{
+  "user": {"id": 1987, "signin": "2026-09-01 10:00:00", "platform": "sharedAccess"},
+  "connection": {
+    "id": 77,
+    "id_user": 1987,
+    "id_connector": 59,
+    "state": "SCARequired",
+    "error": "SCARequired",
+    "error_message": "Strong customer authentication is required",
+    "last_update": "2026-09-30 22:15:03",
+    "created": "2026-03-04 10:00:00",
+    "active": true,
+    "last_push": null,
+    "expire": "2026-12-01 00:00:00",
+    "next_try": null,
+    "accounts": [{"id": 4211, "id_connection": 77, "balance": 9178.44, "transactions": []}]
+  }
+}

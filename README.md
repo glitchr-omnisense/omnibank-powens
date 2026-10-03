@@ -1,0 +1,59 @@
+# omnibank/powens
+
+Powens (ex Budget Insight) for [glitchr/omnibank](https://github.com/glitchr-studio/omnibank):
+the user connects their banks in Powens' Webview; their accounts, balances and transactions are
+read with the user's permanent token; CONNECTION_SYNCED webhooks say when the data is fresh or the
+consent must be renewed.
+
+> **Unverified.** Written from Powens' published documentation and recorded answers
+> (`Tests/Fixtures`); it has not yet been run against a real Powens sandbox. Try it with real keys
+> (`docker compose run --rm omnibank connect powens` in `glitchr/omnibank`'s `docker/`) before
+> relying on it, and drop this notice once it holds - the webhook signature above all.
+
+```yaml
+omnibank:
+    gateways:
+        banks:
+            factory: powens
+            options:
+                domain: 'nakaya-sandbox.biapi.pro'               # the client's domain in the Powens console
+                client_id: '%env(POWENS_CLIENT_ID)%'
+                client_secret: '%env(POWENS_CLIENT_SECRET)%'
+                redirect_uri: 'https://app.example/bank/back'    # when connect() is given no return URL
+                webhook_secret: '%env(POWENS_WEBHOOK_SECRET)%'   # for notify()
+                webhook_url: 'https://app.example/bank/webhook'  # the URL registered: its path is signed
+                language: fr                                     # the Webview's
+```
+
+- `connect()` - the first time, `POST /2.0/auth/init` creates the Powens user; its permanent token
+  goes in the connection's state (`auth_token`, `user_id`): **keep the connection**. Each time,
+  `GET /2.0/auth/token/code` gives a temporary code and the result's URL is the Webview:
+  `https://webview.powens.com/connect?domain=…&client_id=…&redirect_uri=…&code=…`. When the
+  consent is NEEDS_RENEWAL and the state has `connection_id`, it is the `/reconnect` page of that
+  connection. The Webview sends the user back with `connection_id` in the query: put it in the
+  state and mark the consent active (`$connection->withState([...] + $connection->state)->withConsent(Consent::active())`).
+- `accounts()` - `GET /2.0/users/me/accounts` (deleted ones left out); `balances()` -
+  `GET /2.0/users/me/accounts/{id}`: `balance` (`booked`), and with `coming` (`expected`).
+- `transactions()` - `GET /2.0/users/me/accounts/{id}/transactions?min_date=&max_date=&limit=`,
+  every page (`_links.next.href`, else the next offset while pages come full); coming and deleted
+  transactions left out; `original_wording` is the label, `counterparty` its name and IBAN.
+- `notify()` - a body with a `connection` is CONNECTION_SYNCED: its `connectionId`, and its
+  state as the consent - `SCARequired`, `webauthRequired`, `decoupled`,
+  `additionalInformationNeeded`, `actionNeeded`, `wrongpass`, `passwordExpired` are NEEDS_RENEWAL;
+  none (or a bank outage: `websiteUnavailable`, `rateLimiting`, `bug`) is ACTIVE; `expire` is its
+  expiry. Another body comes back `UNKNOWN`, consent NONE (it says nothing of it).
+- No `transfer()` in this version.
+
+**Webhook signature - an assumption.** Powens signs webhooks with the console's webhook secret in
+`BI-Signature`, with `BI-Signature-Date`. This package takes base64(HMAC-SHA256(secret,
+`POST.<webhook path>.<BI-Signature-Date>.<body>`)) - which needs `webhook_url` - and also the
+HMAC-SHA256 of the body alone (base64 or hex). Check it against a real sandbox webhook and keep
+only what Powens sends.
+
+A 5xx, a 429 or a network failure is an `UnavailableException`, never an empty list.
+
+Credentials: in the Powens console (console.powens.com), a **domain** (`<x>-sandbox.biapi.pro`
+for the sandbox), a client application's **client_id** and **client_secret** with the return URL
+whitelisted, and a webhook on CONNECTION_SYNCED with its **secret**.
+
+License: LGPL-3.0-or-later.
