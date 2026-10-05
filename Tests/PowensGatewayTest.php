@@ -22,7 +22,7 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 final class PowensGatewayTest extends TestCase
 {
     private const SECRET = 'pwns_whsec';
-    private const TOKEN = 'pwns_perm_6Hk2c1V0xYj0b1yD4n9QeLr7ZsTq';
+    private const TOKEN = 'pwns_test_not_a_real_token';
 
     /** @var list<array{string, string, array}> method, url, options */
     private array $calls = [];
