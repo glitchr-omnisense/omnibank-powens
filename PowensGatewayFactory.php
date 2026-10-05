@@ -3,7 +3,6 @@
 namespace Omnibank\Powens;
 
 use Omnibank\Config;
-use Omnibank\Exception\InvalidConfigException;
 use Omnibank\GatewayFactory;
 use Omnibank\Powens\Action\AccountsAction;
 use Omnibank\Powens\Action\BalancesAction;
@@ -43,7 +42,7 @@ final class PowensGatewayFactory extends GatewayFactory
             'webview' => Api::WEBVIEW,
             'language' => null,
             'omnibank.api' => fn (Config $c) => new Api(
-                $this->http ?? (class_exists(HttpClient::class) ? HttpClient::create() : throw new InvalidConfigException('The "powens" gateway needs an HTTP client: symfony/http-client.')),
+                $this->http ?? HttpClient::create(),
                 preg_replace('#^https?://|/.*$#', '', (string) $c['domain']),
                 (string) $c['client_id'],
                 (string) $c['client_secret'],
