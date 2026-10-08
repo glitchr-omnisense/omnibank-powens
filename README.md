@@ -63,4 +63,4 @@ Credentials: in the Powens console (console.powens.com), a **domain** (`<x>-sand
 for the sandbox), a client application's **client_id** and **client_secret** with the return URL
 whitelisted, and a webhook on CONNECTION_SYNCED with its **secret**.
 
-License: LGPL-3.0-or-later.
+License: MIT since 2026-10-09; earlier versions remain published under LGPL-3.0-or-later.
