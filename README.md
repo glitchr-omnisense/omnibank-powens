@@ -1,20 +1,20 @@
 # omnibank/powens
 
-Powens (ex Budget Insight) for [omniscient/omnibank](https://github.com/glitchr-studio/omnibank):
+Powens (ex Budget Insight) for [omnisense/omnibank](https://github.com/glitchr-omnisense/omnibank):
 the user connects their banks in Powens' Webview; their accounts, balances and transactions are
 read with the user's permanent token; CONNECTION_SYNCED webhooks say when the data is fresh or the
 consent must be renewed.
 
 > **Unverified.** Written from Powens' published documentation and recorded answers
 > (`Tests/Fixtures`); it has not yet been run against a real Powens sandbox. Try it with real keys
-> (`docker compose run --rm omnibank connect powens` in `omniscient/omnibank`'s `docker/`) before
+> (`docker compose run --rm omnibank connect powens` in `omnisense/omnibank`'s `docker/`) before
 > relying on it, and drop this notice once it holds - the webhook signature above all.
 
 ```php
 $gateway = (new PowensGatewayFactory($http))->create(['domain' => '...', 'client_id' => '...', 'client_secret' => '...']);   // $http: the application's HTTP client; none given, the factory makes its own
 ```
 
-No framework needed: the package requires `omniscient/omnibank` and `symfony/http-client`. In a
+No framework needed: the package requires `omnisense/omnibank` and `symfony/http-client`. In a
 Symfony application, the same through the bundle's configuration:
 
 ```yaml
