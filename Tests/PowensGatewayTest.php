@@ -154,13 +154,27 @@ final class PowensGatewayTest extends TestCase
         $this->gateway()->accounts(new Connection());
     }
 
+    /**
+     * The headers Powens sends: BI-Signature, the base64 of the HMAC-SHA256 of
+     * "POST.<webhook path>.<BI-Signature-Date>.<body>" (Powens' API documentation, its webhooks'
+     * signature: the string signed, the BI-Signature and BI-Signature-Date headers), signed at
+     * $date (now by default).
+     *
+     * @return array<string, string>
+     */
+    private static function signed(string $body, ?string $date = null): array
+    {
+        $date ??= gmdate(\DATE_RFC7231);
+
+        return ['BI-Signature' => base64_encode(hash_hmac('sha256', 'POST./bank/webhook/powens.'.$date.'.'.$body, self::SECRET, true)), 'BI-Signature-Date' => $date];
+    }
+
     public function testAConnectionSyncedWebhookCheckedThenRead(): void
     {
         $body = self::fixture('webhook-connection-synced.json');
-        $date = 'Tue, 30 Sep 2026 22:15:04 GMT';
-        $signature = base64_encode(hash_hmac('sha256', 'POST./bank/webhook/powens.'.$date.'.'.$body, self::SECRET, true));
+        $headers = self::signed($body);
 
-        $notification = $this->gateway()->notify($body, ['bi-signature' => $signature, 'BI-Signature-Date' => $date]);
+        $notification = $this->gateway()->notify($body, ['bi-signature' => $headers['BI-Signature'], 'BI-Signature-Date' => $headers['BI-Signature-Date']]);
 
         self::assertSame('CONNECTION_SYNCED', $notification->type);
         self::assertSame('77', $notification->connectionId);
@@ -169,15 +183,14 @@ final class PowensGatewayTest extends TestCase
         self::assertSame(1987, $notification->raw['user']['id']);
 
         $fine = json_encode(['connection' => ['id' => 78, 'state' => null, 'error' => null]]);
-        $ok = $this->gateway()->notify($fine, ['BI-Signature' => base64_encode(hash_hmac('sha256', $fine, self::SECRET, true))]);
-        self::assertSame(ConsentStatus::ACTIVE, $ok->consent->status, 'the body\'s own HMAC is taken too');
+        self::assertSame(ConsentStatus::ACTIVE, $this->gateway()->notify($fine, self::signed($fine))->consent->status);
 
         foreach (['webauthRequired', 'decoupled', 'wrongpass'] as $state) {
             $body = json_encode(['connection' => ['id' => 79, 'state' => $state]]);
-            self::assertSame(ConsentStatus::NEEDS_RENEWAL, $this->gateway()->notify($body, ['BI-Signature' => Api::signatures($body, self::SECRET)[0]])->consent->status, $state);
+            self::assertSame(ConsentStatus::NEEDS_RENEWAL, $this->gateway()->notify($body, self::signed($body))->consent->status, $state);
         }
         $body = json_encode(['connection' => ['id' => 80, 'state' => 'websiteUnavailable']]);
-        self::assertSame(ConsentStatus::ACTIVE, $this->gateway()->notify($body, ['BI-Signature' => Api::signatures($body, self::SECRET)[0]])->consent->status, 'the bank\'s outage is not the consent\'s');
+        self::assertSame(ConsentStatus::ACTIVE, $this->gateway()->notify($body, self::signed($body))->consent->status, 'the bank\'s outage is not the consent\'s');
     }
 
     public function testAWebhookNotSignedWithTheSecretIsRefused(): void
@@ -185,6 +198,51 @@ final class PowensGatewayTest extends TestCase
         $body = self::fixture('webhook-connection-synced.json');
         $this->expectException(InvalidNotificationException::class);
         $this->gateway()->notify($body, ['BI-Signature' => base64_encode(hash_hmac('sha256', $body, 'another', true)), 'BI-Signature-Date' => 'x']);
+    }
+
+    /** A webhook captured and sent again later: its signed date is too old. */
+    public function testAWebhookSignedTooLongAgoIsRefused(): void
+    {
+        $body = self::fixture('webhook-connection-synced.json');
+
+        $this->expectException(InvalidNotificationException::class);
+        $this->expectExceptionMessage('too old');
+        $this->gateway()->notify($body, self::signed($body, gmdate(\DATE_RFC7231, time() - 3600)));
+    }
+
+    public function testTheToleranceIsAnOption(): void
+    {
+        $body = self::fixture('webhook-connection-synced.json');
+        $headers = self::signed($body, gmdate(\DATE_RFC7231, time() - 3600));
+
+        self::assertSame('77', $this->gateway(null, ['webhook_tolerance' => 7200])->notify($body, $headers)->connectionId);
+    }
+
+    /** The HMAC of the body alone covers no date: anyone who saw one webhook could send it again. */
+    public function testAnUndatedSignatureIsRefused(): void
+    {
+        $body = self::fixture('webhook-connection-synced.json');
+        foreach ([base64_encode(hash_hmac('sha256', $body, self::SECRET, true)), hash_hmac('sha256', $body, self::SECRET)] as $signature) {
+            try {
+                $this->gateway()->notify($body, ['BI-Signature' => $signature, 'BI-Signature-Date' => gmdate(\DATE_RFC7231)]);
+                self::fail('the body\'s own HMAC is taken');
+            } catch (InvalidNotificationException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+        $this->expectException(InvalidNotificationException::class);
+        $this->gateway()->notify($body, ['BI-Signature' => base64_encode(hash_hmac('sha256', $body, self::SECRET, true))]);
+    }
+
+    /** base64 is case-sensitive: a signature with its letters' case changed is another signature. */
+    public function testABase64SignatureIsComparedExactly(): void
+    {
+        $body = self::fixture('webhook-connection-synced.json');
+        $headers = self::signed($body);
+        $headers['BI-Signature'] = strtolower($headers['BI-Signature']);
+
+        $this->expectException(InvalidNotificationException::class);
+        $this->gateway()->notify($body, $headers);
     }
 
     public function testAnOutageIsNeverNoData(): void

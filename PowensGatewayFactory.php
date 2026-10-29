@@ -24,7 +24,8 @@ use Symfony\Component\HttpClient\HttpClient;
  *     client_secret: '%env(POWENS_CLIENT_SECRET)%'
  *     redirect_uri: 'https://app.example/bank/back'     # when connect() is given no return URL; whitelisted in the console
  *     webhook_secret: '%env(POWENS_WEBHOOK_SECRET)%'    # for notify()
- *     webhook_url: 'https://app.example/bank/webhook'   # the URL registered, its path signed
+ *     webhook_url: 'https://app.example/bank/webhook'   # the URL registered, its path signed; for notify()
+ *     webhook_tolerance: 300                            # seconds a webhook's BI-Signature-Date may be from now
  *     webview: 'https://webview.powens.com'
  *     language: null                                    # "fr", "en"...: the Webview's
  */
@@ -39,6 +40,7 @@ final class PowensGatewayFactory extends GatewayFactory
             'redirect_uri' => null,
             'webhook_secret' => null,
             'webhook_url' => null,
+            'webhook_tolerance' => Api::WEBHOOK_TOLERANCE,
             'webview' => Api::WEBVIEW,
             'language' => null,
             'omnibank.api' => fn (Config $c) => new Api(
@@ -50,6 +52,7 @@ final class PowensGatewayFactory extends GatewayFactory
                 $c['webhook_url'] ?: null,
                 (string) $c['webview'],
                 $c['language'] ?: null,
+                webhookTolerance: (int) $c['webhook_tolerance'],
             ),
             'omnibank.action.connect' => static fn (Config $c) => new ConnectAction($c['redirect_uri'] ?: null),
             'omnibank.action.accounts' => new AccountsAction(),

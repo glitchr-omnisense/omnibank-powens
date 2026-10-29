@@ -29,6 +29,7 @@ omnibank:
                 redirect_uri: 'https://app.example/bank/back'    # when connect() is given no return URL
                 webhook_secret: '%env(POWENS_WEBHOOK_SECRET)%'   # for notify()
                 webhook_url: 'https://app.example/bank/webhook'  # the URL registered: its path is signed
+                webhook_tolerance: 300                           # seconds a webhook's date may be from now
                 language: fr                                     # the Webview's
 ```
 
@@ -53,9 +54,9 @@ omnibank:
 
 **Webhook signature - an assumption.** Powens signs webhooks with the console's webhook secret in
 `BI-Signature`, with `BI-Signature-Date`. This package takes base64(HMAC-SHA256(secret,
-`POST.<webhook path>.<BI-Signature-Date>.<body>`)) - which needs `webhook_url` - and also the
-HMAC-SHA256 of the body alone (base64 or hex). Check it against a real sandbox webhook and keep
-only what Powens sends.
+`POST.<webhook path>.<BI-Signature-Date>.<body>`)), as Powens documents it - which needs
+`webhook_url` - compared exactly, and refuses a webhook signed more than `webhook_tolerance`
+seconds (300) from now. Check it against a real sandbox webhook.
 
 A 5xx, a 429 or a network failure is an `UnavailableException`, never an empty list.
 

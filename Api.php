@@ -15,13 +15,17 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *
  * Webhooks: Powens signs them with the webhook secret of the console. This
  * client reads the signature as Powens documents it - BI-Signature: base64
- * of the HMAC-SHA256 of "POST.<webhook path>.<BI-Signature-Date>.<body>" -
- * and also takes the HMAC-SHA256 of the body alone (base64 or hex). That is
- * an assumption until checked against a real sandbox webhook.
+ * of the HMAC-SHA256 of "POST.<webhook path>.<BI-Signature-Date>.<body>",
+ * compared exactly - and refuses a webhook whose BI-Signature-Date is more
+ * than the tolerance away from now (a webhook captured and sent again). Not
+ * yet checked against a real sandbox webhook.
  */
 final class Api
 {
     public const WEBVIEW = 'https://webview.powens.com';
+
+    /** How far a webhook's signed date may be from now, in seconds (the webhook_tolerance option). */
+    public const WEBHOOK_TOLERANCE = 300;
 
     public function __construct(
         private readonly HttpClientInterface $http,
@@ -33,6 +37,7 @@ final class Api
         private readonly string $webview = self::WEBVIEW,
         private readonly ?string $language = null,
         private readonly int $timeout = 30,
+        private readonly int $webhookTolerance = self::WEBHOOK_TOLERANCE,
     ) {
     }
 
@@ -130,34 +135,43 @@ final class Api
         if (null === $this->webhookSecret || '' === $this->webhookSecret) {
             throw new InvalidNotificationException('powens', 'No webhook secret: the notification cannot be checked.');
         }
+        if (null === $this->webhookUrl || '' === $this->webhookUrl) {
+            throw new InvalidNotificationException('powens', 'No webhook_url: its path is part of what Powens signs, the notification cannot be checked.');
+        }
         $signature = trim((string) $signature);
         if ('' === $signature) {
             throw new InvalidNotificationException('powens', 'The notification is unsigned (no BI-Signature).');
         }
-        foreach (self::signatures($body, $this->webhookSecret, $date, $this->webhookUrl) as $expected) {
-            if (hash_equals($expected, $signature) || hash_equals(strtolower($expected), strtolower($signature))) {
-                return;
-            }
+        $date = trim((string) $date);
+        if ('' === $date) {
+            throw new InvalidNotificationException('powens', 'The notification is undated (no BI-Signature-Date).');
         }
-
-        throw new InvalidNotificationException('powens', 'The notification\'s signature does not match.');
+        $expected = self::signatures($body, $this->webhookSecret, $date, $this->webhookUrl)[0];
+        if (!hash_equals($expected, $signature)) {
+            throw new InvalidNotificationException('powens', 'The notification\'s signature does not match.');
+        }
+        $signedAt = strtotime($date);
+        if (false === $signedAt) {
+            throw new InvalidNotificationException('powens', 'The notification\'s BI-Signature-Date cannot be read.');
+        }
+        if (abs(time() - $signedAt) > $this->webhookTolerance) {
+            throw new InvalidNotificationException('powens', \sprintf('The notification is too old (signed %s, more than %d seconds from now): a webhook sent again is refused.', $date, $this->webhookTolerance));
+        }
     }
 
     /**
-     * The signatures this client takes for a body: the documented one first
-     * (when the webhook's URL and the date are known), then the body's alone.
+     * The signature Powens sends for a body (BI-Signature): the base64 of the HMAC-SHA256 of
+     * "POST.<webhook path>.<date>.<body>". A list (of one, when the date and the URL are given)
+     * for the callers that took it so; without a date or a URL there is nothing to sign.
      *
      * @return list<string>
      */
     public static function signatures(string $body, string $secret, ?string $date = null, ?string $webhookUrl = null): array
     {
-        $signatures = [];
-        if (null !== $date && '' !== $date && null !== $webhookUrl && '' !== $webhookUrl) {
-            $signatures[] = base64_encode(hash_hmac('sha256', 'POST.'.(parse_url($webhookUrl, \PHP_URL_PATH) ?: '/').'.'.$date.'.'.$body, $secret, true));
+        if (null === $date || '' === $date || null === $webhookUrl || '' === $webhookUrl) {
+            return [];
         }
-        $signatures[] = base64_encode(hash_hmac('sha256', $body, $secret, true));
-        $signatures[] = hash_hmac('sha256', $body, $secret);
 
-        return $signatures;
+        return [base64_encode(hash_hmac('sha256', 'POST.'.(parse_url($webhookUrl, \PHP_URL_PATH) ?: '/').'.'.$date.'.'.$body, $secret, true))];
     }
 }

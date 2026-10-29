@@ -48,7 +48,8 @@ options of `create()`:
 | `client_secret` | string | - | yes | |
 | `redirect_uri` | ?string | `null` | no | the return URL when `connect()` is given an empty one |
 | `webhook_secret` | ?string | `null` | for `notify()` | |
-| `webhook_url` | ?string | `null` | no | the webhook's URL as registered: its path is part of the signed string |
+| `webhook_url` | ?string | `null` | for `notify()` | the webhook's URL as registered: its path is part of the signed string |
+| `webhook_tolerance` | int | `300` | no | the seconds a webhook's `BI-Signature-Date` may be from now |
 | `webview` | string | `https://webview.powens.com` | no | |
 | `language` | ?string | `null` | no | `fr`, `en`...: the Webview's, in its path |
 
@@ -100,15 +101,13 @@ and `value`, are left out; the others kept between the days asked, each once by 
 
 **Webhooks.** [notify()](https://github.com/glitchr-omnisense/omnibank/blob/1.x/docs/usage-webhooks.md):
 the signature checked first (`BI-Signature`, `BI-Signature-Date`: base64 of the HMAC-SHA256 of
-`POST.<webhook_url's path>.<date>.<body>`, and also the HMAC of the body alone, base64 or hex), then
-the body read: `type` from its `type` or `event`, else `CONNECTION_SYNCED` when it has a
+`POST.<webhook_url's path>.<date>.<body>`, compared exactly; `webhook_url` and the date required),
+then its age (a `BI-Signature-Date` more than `webhook_tolerance` seconds from now is "too old": a
+webhook captured and sent again is refused), then the body read: `type` from its `type` or `event`, else `CONNECTION_SYNCED` when it has a
 `connection`, else `UNKNOWN`; `connectionId` the connection's `id`; the consent from the
 connection's `state` (or `error`) - `SCARequired`, `webauthRequired`, `decoupled`,
 `additionalInformationNeeded`, `actionNeeded`, `wrongpass`, `passwordExpired` are NEEDS_RENEWAL,
 anything else ACTIVE, `expire` its expiry; no connection: NONE.
-
-> [!WARNING]
-> Known defect: the signature is also compared in lower case on both sides (meant for hex), so a base64 signature is accepted whatever the case of its letters; and no signature's age is checked (`BI-Signature-Date` is signed, not compared with the time), so a captured webhook can be replayed - the body-only HMAC, also accepted, covers no date at all.
 
 ## Example
 
