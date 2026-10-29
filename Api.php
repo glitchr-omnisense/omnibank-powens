@@ -3,6 +3,7 @@
 namespace Omnibank\Powens;
 
 use Omnibank\Exception\InvalidNotificationException;
+use Omnibank\Http\Redaction;
 use Omnibank\Exception\ProviderException;
 use Omnibank\Exception\UnavailableException;
 use Omnibank\Model\Connection;
@@ -46,7 +47,7 @@ final class Api
     {
         $token = $connection->get('auth_token');
         if (!\is_string($token) || '' === $token) {
-            throw new ProviderException('powens', 'The connection has no Powens user yet: connect() first.');
+            throw Redaction::withoutArguments(new ProviderException('powens', 'The connection has no Powens user yet: connect() first.'));
         }
 
         return $token;
@@ -57,7 +58,7 @@ final class Api
     {
         $data = $this->call('POST', '/auth/init', null, ['client_id' => $this->clientId, 'client_secret' => $this->clientSecret]);
         if (!\is_string($data['auth_token'] ?? null) || '' === $data['auth_token']) {
-            throw new ProviderException('powens', 'Powens gave no user token.');
+            throw Redaction::withoutArguments(new ProviderException('powens', 'Powens gave no user token.'));
         }
 
         return ['auth_token' => $data['auth_token'], 'id_user' => $data['id_user'] ?? null];
@@ -68,7 +69,7 @@ final class Api
     {
         $data = $this->call('GET', '/auth/token/code', $token);
         if (!\is_string($data['code'] ?? null) || '' === $data['code']) {
-            throw new ProviderException('powens', 'Powens gave no temporary code.');
+            throw Redaction::withoutArguments(new ProviderException('powens', 'Powens gave no temporary code.'));
         }
 
         return $data['code'];
@@ -101,29 +102,32 @@ final class Api
             default => 'https://'.$this->domain.'/2.0/'.ltrim($path, '/'),
         };
         if (parse_url($url, \PHP_URL_HOST) !== $this->domain) {
-            throw new ProviderException('powens', \sprintf('A link out of the client\'s domain (%s) is not followed: the user\'s token stays home.', $url));
+            throw Redaction::withoutArguments(new ProviderException('powens', \sprintf('A link out of the client\'s domain (%s) is not followed: the user\'s token stays home.', Redaction::text($url))));
         }
+        $options = array_filter([
+            'headers' => array_filter(['Accept' => 'application/json', 'Authorization' => null !== $token ? 'Bearer '.$token : null]),
+            'query' => $query,
+            'json' => $body,
+            'timeout' => $this->timeout,
+        ], static fn ($v) => null !== $v && [] !== $v);
         try {
-            $response = $this->http->request($method, $url, array_filter([
-                'headers' => array_filter(['Accept' => 'application/json', 'Authorization' => null !== $token ? 'Bearer '.$token : null]),
-                'query' => $query,
-                'json' => $body,
-                'timeout' => $this->timeout,
-            ], static fn ($v) => null !== $v && [] !== $v));
+            $response = $this->http->request($method, $url, $options);
             $status = $response->getStatusCode();
             $content = $response->getContent(false);
         } catch (HttpExceptionInterface $e) {
-            throw new UnavailableException('powens', 'Powens cannot be reached: '.$e->getMessage(), null, $e);
+            $secrets = [...Redaction::secrets($url, $options), $this->clientSecret];
+
+            throw Redaction::withoutArguments(new UnavailableException('powens', 'Powens cannot be reached: '.Redaction::text($e->getMessage(), $secrets), null, Redaction::copy($e, $secrets)));
         }
         if ($status >= 500 || 429 === $status) {
-            throw new UnavailableException('powens', \sprintf('Powens answered HTTP %d: try again later.', $status), (string) $status);
+            throw Redaction::withoutArguments(new UnavailableException('powens', \sprintf('Powens answered HTTP %d: try again later.', $status), (string) $status));
         }
         $data = '' === $content ? [] : json_decode($content, true);
         if (!\is_array($data)) {
-            throw new UnavailableException('powens', \sprintf('Powens answered HTTP %d with a body that is not JSON.', $status), (string) $status);
+            throw Redaction::withoutArguments(new UnavailableException('powens', \sprintf('Powens answered HTTP %d with a body that is not JSON.', $status), (string) $status));
         }
         if ($status >= 400) {
-            throw new ProviderException('powens', (string) ($data['description'] ?? $data['message'] ?? $data['code'] ?? \sprintf('HTTP %d', $status)), isset($data['code']) ? (string) $data['code'] : (string) $status);
+            throw Redaction::withoutArguments(new ProviderException('powens', (string) ($data['description'] ?? $data['message'] ?? $data['code'] ?? \sprintf('HTTP %d', $status)), isset($data['code']) ? (string) $data['code'] : (string) $status));
         }
 
         return $data;
