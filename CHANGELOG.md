@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+
+- Powens' words mapped onto omnisense/omnibank's (docs.powens.com): its account types onto
+  `AccountKind` (`Account::$kind`), its connection states onto `ConnectionState` (an account's
+  `error` as `Account::$state`, a webhook's connection as `Notification::$state`, an error answer's
+  code as `ProviderException::$connectionState`), its categories - the French, Spanish and European
+  trees, child then parent - and else its transaction types onto `TransactionCategory`
+  (`BankTransaction::$category`). `Mapper::ACCOUNT_KINDS`, `CONNECTION_STATES`, `CATEGORIES`,
+  `TYPE_CATEGORIES`, `kind()`, `connectionState()`, `category()`. A word not published is `UNKNOWN`.
+- The `categories` option (false by default): transactions asked with `expand=categories`, where
+  Powens' categorisation is enabled on the domain.
+
 ### Fixed
 
 - An `UnavailableException` no longer carries the client secret and the user's token. The message

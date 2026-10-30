@@ -15,7 +15,9 @@ use Omnibank\Request\Request;
  * The account's booked transactions (GET /users/me/accounts/{id}/transactions,
  * min_date and max_date the dates asked), every page: the next link Powens
  * gives (_links.next.href), else the next offset while pages come full.
- * Transactions still coming, and deleted ones, are left out.
+ * Transactions still coming, and deleted ones, are left out. With
+ * $categories (the "categories" option, for a domain where Powens'
+ * categorisation is enabled) each page is asked with expand=categories.
  */
 final class TransactionsAction implements ActionInterface, ApiAwareInterface
 {
@@ -25,7 +27,7 @@ final class TransactionsAction implements ActionInterface, ApiAwareInterface
     private const LIMIT = 1000;
     private const MAX_PAGES = 1000;
 
-    public function __construct()
+    public function __construct(private readonly bool $categories = false)
     {
         $this->apiClass = Api::class;
     }
@@ -40,7 +42,7 @@ final class TransactionsAction implements ActionInterface, ApiAwareInterface
         \assert($request instanceof FetchTransactions);
         $token = Api::token($request->connection);
         $path = '/users/me/accounts/'.rawurlencode($request->account->id).'/transactions';
-        $query = array_filter(['min_date' => $request->since?->format('Y-m-d'), 'max_date' => $request->until?->format('Y-m-d'), 'limit' => self::LIMIT, 'offset' => 0], static fn ($v) => null !== $v);
+        $query = array_filter(['min_date' => $request->since?->format('Y-m-d'), 'max_date' => $request->until?->format('Y-m-d'), 'limit' => self::LIMIT, 'offset' => 0, 'expand' => $this->categories ? 'categories' : null], static fn ($v) => null !== $v);
 
         $transactions = [];
         for ($page = 0; null !== $path && $page < self::MAX_PAGES; ++$page) {

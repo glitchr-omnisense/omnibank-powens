@@ -1,0 +1,16 @@
+{
+  "accounts": [
+    {"id": 5101, "id_connection": 78, "name": "Compte courant", "balance": 3120.4, "currency": {"id": "EUR"}, "type": "checking", "error": null, "deleted": null, "last_update": "2026-10-29 06:02:11"},
+    {"id": 5102, "id_connection": 78, "name": "Livret A", "balance": 22950.0, "currency": {"id": "EUR"}, "type": "livret_a", "error": null, "deleted": null},
+    {"id": 5103, "id_connection": 78, "name": "Carte Visa Premier", "balance": -412.33, "currency": {"id": "EUR"}, "type": "card", "error": null, "deleted": null},
+    {"id": 5104, "id_connection": 78, "name": "Prêt immobilier", "balance": -151200.0, "currency": {"id": "EUR"}, "type": "loan", "error": null, "deleted": null},
+    {"id": 5105, "id_connection": 78, "name": "Crédit conso", "balance": -4800.0, "currency": {"id": "EUR"}, "type": "consumercredit", "error": null, "deleted": null},
+    {"id": 5106, "id_connection": 78, "name": "Réserve", "balance": -120.0, "currency": {"id": "EUR"}, "type": "revolvingcredit", "error": null, "deleted": null},
+    {"id": 5107, "id_connection": 78, "name": "PEA", "balance": 18200.5, "currency": {"id": "EUR"}, "type": "pea", "error": null, "deleted": null},
+    {"id": 5108, "id_connection": 78, "name": "Assurance vie", "balance": 40210.0, "currency": {"id": "EUR"}, "type": "lifeinsurance", "error": "SCARequired", "deleted": null},
+    {"id": 5109, "id_connection": 78, "name": "Compte-titres", "balance": 7300.0, "currency": {"id": "EUR"}, "type": "market", "error": "websiteUnavailable", "deleted": null},
+    {"id": 5110, "id_connection": 78, "name": "PER", "balance": 2100.0, "currency": {"id": "EUR"}, "type": "per", "error": "aStateNobodyPublished", "deleted": null},
+    {"id": 5111, "id_connection": 78, "name": "Nouveau produit", "balance": 10.0, "currency": {"id": "EUR"}, "type": "spaceship", "deleted": null}
+  ],
+  "total": 11
+}

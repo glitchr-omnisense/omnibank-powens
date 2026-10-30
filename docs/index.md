@@ -52,6 +52,7 @@ options of `create()`:
 | `webhook_tolerance` | int | `300` | no | the seconds a webhook's `BI-Signature-Date` may be from now |
 | `webview` | string | `https://webview.powens.com` | no | |
 | `language` | ?string | `null` | no | `fr`, `en`...: the Webview's, in its path |
+| `categories` | bool | `false` | no | where Powens' categorisation is enabled on the domain: transactions asked with `expand=categories` |
 
 The connection's state (kept by the application): `auth_token` and `user_id` (set by the first
 `connect()`), `connection_id` (put there by the application from the Webview's return, or from a
@@ -108,6 +109,31 @@ webhook captured and sent again is refused), then the body read: `type` from its
 connection's `state` (or `error`) - `SCARequired`, `webauthRequired`, `decoupled`,
 `additionalInformationNeeded`, `actionNeeded`, `wrongpass`, `passwordExpired` are NEEDS_RENEWAL,
 anything else ACTIVE, `expire` its expiry; no connection: NONE.
+
+## Kinds, categories, states
+
+What Powens publishes on docs.powens.com, read as omnisense/omnibank's words (`Mapper`'s public
+constants; a word not in them is `UNKNOWN`, never an error; Powens' word stays in `Account::$type`
+and `raw`):
+
+- **Account types** (`Mapper::ACCOUNT_KINDS`, Bank account types): `checking` and the deprecated
+  `joint` CHECKING; `card` CARD; `savings`, `deposit`, `livret_a`, `livret_b`, `ldds`, `csl`
+  SAVINGS; `cat` TERM_DEPOSIT; `loan` LOAN; `consumercredit` CONSUMER_CREDIT; `revolvingcredit`
+  REVOLVING; `market` MARKET; `lifeinsurance` LIFE_INSURANCE; `pea`, `pee`, `pel`, `cel`,
+  `capitalisation` SAVINGS_PLAN; `per`, `perco`, `perp`, `madelin`, `article83`, `rsp` RETIREMENT;
+  `real_estate`, `crowdlending` OTHER_INVESTMENT.
+- **Connection states** (`Mapper::CONNECTION_STATES`, SCA and connection states): null OK;
+  `SCARequired`, `webauthRequired`, `additionalInformationNeeded`, `decoupled`, `actionNeeded`,
+  `passwordExpired` ACTION_NEEDED; `validating` PENDING; `wrongpass` WRONG_CREDENTIALS;
+  `rateLimiting`, `websiteUnavailable` BANK_UNAVAILABLE; `bug` BUG. Read from a webhook's
+  connection (`Notification::$state`), from an account's `error` (`Account::$state`; no `error`
+  field, null), and from an error answer whose `code` is one of them
+  (`ProviderException::$connectionState`).
+- **Categories** (`Mapper::CATEGORIES`, Categorization: the French, Spanish and European trees): a
+  transaction's `categories` (asked with the `categories` option), the child's code first, then its
+  parent's. Without categories, the type (`Mapper::TYPE_CATEGORIES`, Bank transactions): `transfer`
+  TRANSFER, `withdrawal` and `check` CASH, `bank`, `fee`, `market_fee` BANK_FEES, `loan_repayment`
+  LOAN, `profit` and `payout` INCOME; any other type (a card, an order) leaves it uncategorised.
 
 ## Example
 
@@ -217,6 +243,10 @@ failure](https://github.com/glitchr-omnisense/omnibank/blob/1.x/docs/errors.md#n
   connect without a return URL needs the option; the user's accounts and balances; transactions
   every page, booked only; not connected says so; a CONNECTION_SYNCED webhook checked then read, one
   not signed with the secret refused; an outage never "no data"; no transfers.
+- Verified (2026-10-30, `Tests/MappingTest`, 7 tests on recorded answers): every published account
+  type, connection state and French parent category mapped; an account's `error`, a webhook's state
+  and a refusal's code read as the connection's state; categories, then types, then nothing; the
+  `categories` option asks for them.
 - Not verified: against a real Powens sandbox; the webhook signature as Powens really sends it.
 
 ## Responsibility

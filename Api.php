@@ -127,7 +127,9 @@ final class Api
             throw Redaction::withoutArguments(new UnavailableException('powens', \sprintf('Powens answered HTTP %d with a body that is not JSON.', $status), (string) $status));
         }
         if ($status >= 400) {
-            throw Redaction::withoutArguments(new ProviderException('powens', (string) ($data['description'] ?? $data['message'] ?? $data['code'] ?? \sprintf('HTTP %d', $status)), isset($data['code']) ? (string) $data['code'] : (string) $status));
+            // A code that is one of the connection's states (wrongpass, SCARequired...) says what the refusal means for the access.
+            $code = isset($data['code']) ? (string) $data['code'] : (string) $status;
+            throw Redaction::withoutArguments(new ProviderException('powens', (string) ($data['description'] ?? $data['message'] ?? $data['code'] ?? \sprintf('HTTP %d', $status)), $code, null, Mapper::CONNECTION_STATES[$code] ?? null));
         }
 
         return $data;

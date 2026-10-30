@@ -1,0 +1,4 @@
+{
+  "user": {"id": 1987},
+  "connection": {"id": 78, "id_user": 1987, "id_connector": 59, "state": "wrongpass", "error": "wrongpass", "error_message": "Wrong password", "last_update": "2026-10-29 06:02:11", "active": true, "expire": null, "accounts": []}
+}

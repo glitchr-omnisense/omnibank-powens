@@ -1,0 +1,18 @@
+{
+  "transactions": [
+    {"id": 990001, "id_account": 5101, "date": "2026-10-01", "value": 3200.0, "type": "transfer", "original_wording": "VIR SEPA SALAIRE OCTOBRE", "coming": false, "deleted": null, "categories": [{"code": "salary", "parent_code": "revenue"}]},
+    {"id": 990002, "id_account": 5101, "date": "2026-10-02", "value": -64.9, "type": "card", "original_wording": "CB CARREFOUR 01/10", "coming": false, "deleted": null, "categories": [{"code": "supermarket_and_groceries", "parent_code": "food_and_restaurants"}]},
+    {"id": 990003, "id_account": 5101, "date": "2026-10-03", "value": -850.0, "type": "order", "original_wording": "PRLV LOYER", "coming": false, "deleted": null, "categories": [{"code": "rent", "parent_code": "housing"}]},
+    {"id": 990004, "id_account": 5101, "date": "2026-10-04", "value": -32.0, "type": "order", "original_wording": "PRLV MAAF", "coming": false, "deleted": null, "categories": [{"code": "insurances", "parent_code": "bank_insurances"}]},
+    {"id": 990005, "id_account": 5101, "date": "2026-10-05", "value": -60.0, "type": "withdrawal", "original_wording": "RETRAIT DAB", "coming": false, "deleted": null, "categories": []},
+    {"id": 990006, "id_account": 5101, "date": "2026-10-06", "value": -8.5, "type": "bank", "original_wording": "COTISATION CARTE", "coming": false, "deleted": null},
+    {"id": 990007, "id_account": 5101, "date": "2026-10-07", "value": -19.99, "type": "card", "original_wording": "CB SPOTIFY", "coming": false, "deleted": null, "categories": [{"code": "media_subscriptions", "parent_code": "media_and_telecommunications"}]},
+    {"id": 990008, "id_account": 5101, "date": "2026-10-08", "value": -12.0, "type": "card", "original_wording": "CB ???", "coming": false, "deleted": null, "categories": [{"code": "a_code_from_tomorrow", "parent_code": "a_parent_from_tomorrow"}]},
+    {"id": 990009, "id_account": 5101, "date": "2026-10-09", "value": -25.0, "type": "card", "original_wording": "CB LIBRAIRIE", "coming": false, "deleted": null},
+    {"id": 990010, "id_account": 5101, "date": "2026-10-10", "value": -14.2, "type": "card", "original_wording": "CB PHARMACIE", "coming": false, "deleted": null, "categories": [{"code": "a_new_child", "parent_code": "healthcare"}]}
+  ],
+  "first_date": "2026-10-01",
+  "last_date": "2026-10-10",
+  "result_min_date": "2026-10-01",
+  "result_max_date": "2026-10-10"
+}

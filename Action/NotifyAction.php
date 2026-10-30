@@ -52,6 +52,7 @@ final class NotifyAction implements ActionInterface, ApiAwareInterface
             connectionId: isset($connection['id']) ? (string) $connection['id'] : null,
             consent: null !== $connection ? Mapper::consent($connection) : Consent::none(),
             raw: $event,
+            state: null !== $connection ? Mapper::connectionState(isset($connection['state']) ? (string) $connection['state'] : (isset($connection['error']) ? (string) $connection['error'] : null)) : null,
         ));
     }
 }

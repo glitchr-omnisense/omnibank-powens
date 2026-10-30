@@ -28,6 +28,7 @@ use Symfony\Component\HttpClient\HttpClient;
  *     webhook_tolerance: 300                            # seconds a webhook's BI-Signature-Date may be from now
  *     webview: 'https://webview.powens.com'
  *     language: null                                    # "fr", "en"...: the Webview's
+ *     categories: false                                 # true where Powens' categorisation is enabled: transactions asked with expand=categories
  */
 final class PowensGatewayFactory extends GatewayFactory
 {
@@ -43,6 +44,7 @@ final class PowensGatewayFactory extends GatewayFactory
             'webhook_tolerance' => Api::WEBHOOK_TOLERANCE,
             'webview' => Api::WEBVIEW,
             'language' => null,
+            'categories' => false,
             'omnibank.api' => fn (Config $c) => new Api(
                 $this->http ?? HttpClient::create(),
                 preg_replace('#^https?://|/.*$#', '', (string) $c['domain']),
@@ -57,7 +59,7 @@ final class PowensGatewayFactory extends GatewayFactory
             'omnibank.action.connect' => static fn (Config $c) => new ConnectAction($c['redirect_uri'] ?: null),
             'omnibank.action.accounts' => new AccountsAction(),
             'omnibank.action.balances' => new BalancesAction(),
-            'omnibank.action.transactions' => new TransactionsAction(),
+            'omnibank.action.transactions' => static fn (Config $c) => new TransactionsAction((bool) $c['categories']),
             'omnibank.action.notify' => new NotifyAction(),
         ]);
     }
