@@ -102,6 +102,30 @@ final class PowensGatewayTest extends TestCase
         self::assertSame('https://app.example/powens', $query['redirect_uri']);
     }
 
+    public function testBackFromTheWebviewTheConnectionIsKept(): void
+    {
+        $connection = new Connection(['auth_token' => self::TOKEN, 'user_id' => 1987, 'return' => ['connection_id' => '5']]);
+        $result = $this->gateway()->connect($connection, 'https://app.example/bank/back');
+
+        self::assertNull($result->url, 'no page to open again');
+        self::assertSame(5, $result->connection->get('connection_id'));
+        self::assertSame(ConsentStatus::ACTIVE, $result->connection->consent->status);
+        self::assertSame([], $this->calls, 'nothing asked of Powens');
+    }
+
+    public function testBackFromTheWebviewWithAnErrorSaysIt(): void
+    {
+        $connection = new Connection(['auth_token' => self::TOKEN, 'return' => ['error' => 'access_denied', 'error_description' => 'The user closed the Webview']]);
+
+        try {
+            $this->gateway()->connect($connection, 'https://app.example/bank/back');
+            self::fail('a Webview that gave up is an error');
+        } catch (ProviderException $e) {
+            self::assertSame('access_denied', $e->providerCode);
+            self::assertStringContainsString('The user closed the Webview', $e->getMessage());
+        }
+    }
+
     public function testTheUsersAccountsAndBalances(): void
     {
         $gateway = $this->gateway();

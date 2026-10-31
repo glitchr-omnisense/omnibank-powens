@@ -76,10 +76,15 @@ webhook).
 `GET /auth/token/code` gives a temporary code and the result's URL is the Webview:
 `<webview>[/<language>]/connect?domain=…&client_id=…&redirect_uri=…&code=…`. When the connection's
 consent is NEEDS_RENEWAL and the state has a `connection_id`, it is
-`/reconnect?…&connection_id=<id>` for that bank connection. `connect()` does not change the
-consent: the application marks it active on the return (the Webview adds `connection_id` to the
-return URL's query). An empty return URL takes `redirect_uri`; without either, an
-`InvalidConfigException`.
+`/reconnect?…&connection_id=<id>` for that bank connection. An empty return URL takes
+`redirect_uri`; without either, an `InvalidConfigException`.
+
+**The return.** The Webview sends the user back to the return URL with `connection_id` (a bank
+connected) or `error` and `error_description` (the user gave up, or the bank refused). The
+application calls `connect()` again with that query in the state's `return` key: with a
+`connection_id`, it is kept in the state, the consent becomes active and the result has no URL (no
+call to Powens); with an `error`, a `ProviderException` whose `providerCode` is the error. The
+application removes `return` from the state it keeps.
 
 **Accounts.** The user's accounts, every bank connected; those with `deleted` set left out. `id`,
 `iban`, `bic` (empty strings read as none), `name` (else `original_name`, `number`, the id),

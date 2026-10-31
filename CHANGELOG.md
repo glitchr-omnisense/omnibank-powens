@@ -16,6 +16,12 @@
 
 ### Fixed
 
+- Back from the Webview, `connect()` finishes the connection instead of opening the Webview again:
+  the state's `return` (the return URL's query, put there by the application) with a
+  `connection_id` keeps it in the state, makes the consent active and gives no URL; with an `error`,
+  a `ProviderException` (`providerCode` the error, the `error_description` in its message).
+  omnibase/ledger's return route called `connect()` with that query and was sent to the Webview
+  again, every time: a bank connected through Powens never reached the books.
 - An `UnavailableException` no longer carries the client secret and the user's token. The message
   quoted the HTTP client's (the whole URL), the previous was the client's own exception, and every
   trace of the chain kept the arguments of the calls under it (the request's options, the headers
