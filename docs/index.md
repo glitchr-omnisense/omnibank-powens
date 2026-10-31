@@ -34,7 +34,15 @@ application's `http_client` as soon as the package is installed.
 
 In the Powens console (console.powens.com): a **domain** (`<x>-sandbox.biapi.pro` for the
 sandbox), a client application's **client_id** and **client_secret** with the return URL
-whitelisted, and a webhook on CONNECTION_SYNCED with its **secret**.
+whitelisted, and, optionally, a webhook on CONNECTION_SYNCED with its **secret** (the hourly sync
+catches up without it).
+
+**The webhook is set in the console, not by the application.** Powens documents no route to
+register a webhook: its configuration routes (`/2.0/config`, `/2.0/clients`) take a *config token*
+"only available in the Settings section of the console", never one made from the client
+credentials, and the API reference lists no `/webhooks` route. So this gateway answers
+`supports(RegisterWebhook::class)` false (`RequestNotSupportedException` if executed), and an
+application's `ledger:bank:webhook` skips it. Checked against docs.powens.com on 2026-10-31.
 
 ## Options
 

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Documentation
+
+- `docs/index.md`: the webhook is optional and set in the console: Powens documents no route to register a webhook (the config token is console-only), so the
+  gateway answers `supports(RegisterWebhook::class)` false (omnisense/omnibank's new optional
+  capability); a test says so.
+
 ### Added
 
 - Powens' words mapped onto omnisense/omnibank's (docs.powens.com): its account types onto

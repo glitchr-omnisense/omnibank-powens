@@ -14,6 +14,7 @@ use Omnibank\Model\Money;
 use Omnibank\Model\Transfer as TransferModel;
 use Omnibank\Powens\Api;
 use Omnibank\Powens\PowensGatewayFactory;
+use Omnibank\Request\RegisterWebhook;
 use Omnibank\Request\Transfer;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -282,5 +283,14 @@ final class PowensGatewayTest extends TestCase
         self::assertFalse($gateway->supports(Transfer::class));
         $this->expectException(RequestNotSupportedException::class);
         $gateway->transfer(self::connected(), new TransferModel('FR6010278060410002051020134', 'X', 'FR7630004000031234567890143', null, Money::of(100, 'EUR'), 'x'));
+    }
+
+    /** Powens documents no route to register a webhook (the config token is console-only): the application cannot register it, and says so. */
+    public function testTheWebhookCannotBeRegisteredFromTheApplication(): void
+    {
+        $gateway = $this->gateway();
+        self::assertFalse($gateway->supports(RegisterWebhook::class));
+        $this->expectException(RequestNotSupportedException::class);
+        $gateway->execute(new RegisterWebhook('https://books.example.org/bank/webhook'));
     }
 }
