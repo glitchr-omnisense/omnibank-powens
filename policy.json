@@ -1,0 +1,38 @@
+{
+    "$schema": "https://github.com/glitchr-omnisense/contracts/blob/1.x/resources/usage-policy.schema.json",
+    "provider": "powens",
+    "rateLimits": null,
+    "concurrency": null,
+    "rights": {
+        "commercial": "contract",
+        "openSourceRequired": false,
+        "caching": {
+            "permission": "contract",
+            "maxTtl": null
+        },
+        "storage": "contract",
+        "redistribution": "contract",
+        "attribution": {
+            "required": false,
+            "text": null,
+            "url": null,
+            "where": []
+        },
+        "licence": null
+    },
+    "requirements": {
+        "key": true,
+        "userAgent": {
+            "required": false,
+            "pattern": null
+        }
+    },
+    "provenance": {
+        "terms": "https://www.powens.com/sas-conditions-sale/",
+        "policy": "https://docs.powens.com/api-reference/overview/fair-usage-policy",
+        "verifiedAt": "2026-11-10",
+        "declaredBy": "maintainer",
+        "contact": "https://www.powens.com",
+        "notes": "Powens is reached under a contract (its Terms and Conditions of Sale: a non-exclusive, non-transferable right to use the API; the end user accepts Powens' own Terms and Conditions of Use in the Webview, https://www.powens.com/sas-conditions-use/, which say the Partner has its own contract with Powens). Its fair usage policy (read 2026-11-10) publishes no production limit: only the sandbox's, 30 calls a minute and 86,400 a day for the 'Default' client type, so the limits are unknown here (null); a plan is tuned with Powens' key account manager. It advises webhooks over polling, and a manual refresh only when the end user asks, for one user. PSD2 (Commission Delegated Regulation (EU) 2018/389, the RTS on strong customer authentication and secure communication, Art. 36(5)(b), as amended by Delegated Regulation (EU) 2022/2360, applicable since 2023-07-25, which changed Art. 10 and added Art. 10a, not Art. 36): an AISP accesses designated payment accounts 'where the payment service user does not actively request such information, no more than four times in a 24-hour period, unless a higher frequency is agreed' with the bank (text read 2026-11-10 at https://lawplayer.com/eu/act/32018R0389, EUR-Lex's own pages refusing automated reading; the EBA Q&A 2018_4210 counts four requests, each may carry balances and transactions). The Payment Services Regulation and PSD3 (final texts April 2026) were not yet in the Official Journal on 2026-11-10, so the RTS still applies. Powens is the AISP: it schedules the bank synchronisations within that rule; omnibank's reads (accounts, balances, transactions) answer from what Powens synced and trigger no bank access, so the rule is not a limit of this package. Writes: connect() creates a Powens user (POST /auth/init) the first time; Powens offers no idempotency key, so the package never repeats it - a failure after Powens created the user leaves an unused user, and the caller's new connect() creates another."
+    }
+}

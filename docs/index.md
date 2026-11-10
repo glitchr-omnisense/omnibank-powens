@@ -229,6 +229,18 @@ omnibank:
                 language: fr
 ```
 
+## Usage policy
+
+`policy.json` (named in `composer.json`'s `extra.omnisense.policy`, read 2026-11-10): the rate
+limits unknown - Powens' [fair usage policy](https://docs.powens.com/api-reference/overview/fair-usage-policy)
+publishes only the sandbox's (30 calls a minute, 86,400 a day for the "Default" client type) -
+and the rights under Powens' contract ([Terms and Conditions of Sale](https://www.powens.com/sas-conditions-sale/)).
+Powens is the AISP: PSD2's four accesses a day without the user (RTS 2018/389, Art. 36(5)(b)) are
+its synchronisations, not omnibank's reads. A 429 is a `RateLimitedException`, never retried, and
+Powens' next calls wait for its `Retry-After`, unsent. `connect()` creates a Powens user
+(`POST /auth/init`) the first time; Powens offers no idempotency key, so it is never sent again by
+the package - a failure after Powens created it leaves an unused user. See omnisense/omnibank's [Usage policies and rate limits](https://github.com/glitchr-omnisense/omnibank/blob/1.x/docs/policies.md).
+
 ## Errors
 
 | Case | Exception |

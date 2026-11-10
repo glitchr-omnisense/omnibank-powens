@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- On omnisense/contracts: its usage policy as data and Powens' waits honoured: `policy.json` (limits unknown, Powens publishing only its sandbox's; contract; PSD2's four accesses a day are Powens' synchronisations; read 2026-11-10), named in `composer.json`'s `extra.omnisense.policy`; `Api` takes the gateway's `Backoff`: no call while Powens' wait lasts, a 429 a `RateLimitedException` with its `Retry-After`, never retried - the user's creation (`POST /auth/init`) is sent once. The limits per user count per the connection's `user_id`. Requires omnisense/contracts. `phpstan.neon` at level max, `phpstan-baseline.neon` what was there (72 errors). `Tests/PowensPolicyTest`.
+
 ### Documentation
 
 - `docs/index.md`: the webhook is optional and set in the console: Powens documents no route to register a webhook (the config token is console-only), so the

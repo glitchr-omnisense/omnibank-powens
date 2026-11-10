@@ -6,7 +6,9 @@ use Omnibank\Exception\InvalidNotificationException;
 use Omnibank\Http\Redaction;
 use Omnibank\Exception\ProviderException;
 use Omnibank\Exception\UnavailableException;
+use Omnibank\Http\Throttle;
 use Omnibank\Model\Connection;
+use Omnisense\Contracts\Policy\Backoff;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -39,6 +41,8 @@ final class Api
         private readonly ?string $language = null,
         private readonly int $timeout = 30,
         private readonly int $webhookTolerance = self::WEBHOOK_TOLERANCE,
+        /** The waits Powens asks for (omnisense/contracts' Backoff): no call while one lasts, a 429 a RateLimitedException, never retried */
+        private readonly ?Backoff $backoff = null,
     ) {
     }
 
@@ -92,7 +96,8 @@ final class Api
      * @return array<mixed>
      *
      * @throws ProviderException   when Powens refuses (4xx)
-     * @throws UnavailableException when Powens cannot be reached or fails (network, 5xx, 429)
+     * @throws UnavailableException when Powens cannot be reached or fails (network, 5xx, 429: a RateLimitedException)
+     * @throws \Omnibank\Exception\UsageLimitReachedException while Powens' wait lasts (nothing sent)
      */
     public function call(string $method, string $path, ?string $token = null, ?array $body = null, array $query = []): array
     {
@@ -110,16 +115,19 @@ final class Api
             'json' => $body,
             'timeout' => $this->timeout,
         ], static fn ($v) => null !== $v && [] !== $v);
+        Throttle::before($this->backoff);
         try {
             $response = $this->http->request($method, $url, $options);
             $status = $response->getStatusCode();
+            $received = $response->getHeaders(false);
             $content = $response->getContent(false);
         } catch (HttpExceptionInterface $e) {
             $secrets = [...Redaction::secrets($url, $options), $this->clientSecret];
 
             throw Redaction::withoutArguments(new UnavailableException('powens', 'Powens cannot be reached: '.Redaction::text($e->getMessage(), $secrets), null, Redaction::copy($e, $secrets)));
         }
-        if ($status >= 500 || 429 === $status) {
+        Throttle::after($this->backoff, 'powens', $status, $received, \sprintf('Powens answered HTTP %d: try again later.', $status));
+        if ($status >= 500) {
             throw Redaction::withoutArguments(new UnavailableException('powens', \sprintf('Powens answered HTTP %d: try again later.', $status), (string) $status));
         }
         $data = '' === $content ? [] : json_decode($content, true);
