@@ -47,7 +47,7 @@ final class PowensPolicyTest extends TestCase
 
             return array_shift($answers) ?? new MockResponse('{}', ['http_code' => 500]);
         });
-        $gateway = (new Registry([new PowensGatewayFactory($http)], ['bank' => ['factory' => 'powens', 'options' => ['domain' => 'nakaya-sandbox.biapi.pro', 'client_id' => '12345678', 'client_secret' => 'pwns_secret']]]))->guarded('bank');
+        $gateway = (new Registry([new PowensGatewayFactory($http)], ['bank' => ['factory' => 'powens', 'options' => ['domain' => 'example-sandbox.biapi.pro', 'client_id' => '12345678', 'client_secret' => 'pwns_secret']]]))->guarded('bank');
 
         try {
             $gateway->connect(new Connection(), 'https://app.example/bank/back');

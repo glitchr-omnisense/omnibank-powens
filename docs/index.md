@@ -206,7 +206,7 @@ $ php powens.php
   GET https://example-sandbox.biapi.pro/2.0/users/me/accounts/4211/transactions?min_date=2026-09-01&limit=1000&offset=0
   GET https://example-sandbox.biapi.pro/2.0/users/me/accounts/4211/transactions?min_date=2026-09-01&max_date=2026-09-30&limit=2&offset=2
   2026-09-01  -1234.56  PRLV SEPA SCI DES TILLEULS LOYER SEPTEMBRE SCI DES TILLEULS
-  2026-09-02   2500.00  VIR SEPA RECU /DE NAKAYA SAS /MOTIF SALAIRE NAKAYA SAS
+  2026-09-02   2500.00  VIR SEPA RECU /DE ATELIER EXEMPLE SAS /MOTIF SALAIRE ATELIER EXEMPLE SAS
   2026-09-03     -3.50  PAIEMENT CB 0209 PARIS CAFE DE LA GARE -
 ```
 

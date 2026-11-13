@@ -49,7 +49,7 @@ final class PowensGatewayTest extends TestCase
         });
 
         return (new PowensGatewayFactory($http))->create($options + [
-            'domain' => 'nakaya-sandbox.biapi.pro',
+            'domain' => 'example-sandbox.biapi.pro',
             'client_id' => '12345678',
             'client_secret' => 'pwns_secret',
             'webhook_secret' => self::SECRET,
@@ -74,13 +74,13 @@ final class PowensGatewayTest extends TestCase
         self::assertSame(self::TOKEN, $result->connection->get('auth_token'), 'the permanent token kept in the state');
         self::assertSame(1987, $result->connection->get('user_id'));
         self::assertSame('kept', $result->connection->get('mine'), 'the application\'s own keys stay');
-        self::assertSame('https://webview.powens.com/connect?domain=nakaya-sandbox.biapi.pro&client_id=12345678&redirect_uri=https%3A%2F%2Fapp.example%2Fbank%2Fback&code=tmp_8fR2mWq1ZpL0', $result->url);
+        self::assertSame('https://webview.powens.com/connect?domain=example-sandbox.biapi.pro&client_id=12345678&redirect_uri=https%3A%2F%2Fapp.example%2Fbank%2Fback&code=tmp_8fR2mWq1ZpL0', $result->url);
 
         [$method, $url, $options] = $this->calls[0];
-        self::assertSame(['POST', 'https://nakaya-sandbox.biapi.pro/2.0/auth/init'], [$method, $url]);
+        self::assertSame(['POST', 'https://example-sandbox.biapi.pro/2.0/auth/init'], [$method, $url]);
         self::assertSame(['client_id' => '12345678', 'client_secret' => 'pwns_secret'], json_decode($options['body'], true));
         [$method, $url, $options] = $this->calls[1];
-        self::assertSame(['GET', 'https://nakaya-sandbox.biapi.pro/2.0/auth/token/code'], [$method, $url]);
+        self::assertSame(['GET', 'https://example-sandbox.biapi.pro/2.0/auth/token/code'], [$method, $url]);
         self::assertContains('Authorization: Bearer '.self::TOKEN, $options['headers']);
     }
 

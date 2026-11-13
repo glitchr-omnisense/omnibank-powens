@@ -38,12 +38,12 @@
       "rdate": "2026-09-02",
       "value": 2500.0,
       "type": "transfer",
-      "original_wording": "VIR SEPA RECU /DE NAKAYA SAS /MOTIF SALAIRE",
-      "simplified_wording": "NAKAYA SAS",
-      "wording": "Nakaya Sas",
+      "original_wording": "VIR SEPA RECU /DE ATELIER EXEMPLE SAS /MOTIF SALAIRE",
+      "simplified_wording": "ATELIER EXEMPLE SAS",
+      "wording": "Atelier Exemple Sas",
       "coming": false,
       "deleted": null,
-      "counterparty": {"label": "NAKAYA SAS", "account_scheme_name": "iban", "account_identification": "FR7630006000011234567890189", "type": "debtor"}
+      "counterparty": {"label": "ATELIER EXEMPLE SAS", "account_scheme_name": "iban", "account_identification": "FR7630006000011234567890189", "type": "debtor"}
     }
   ],
   "first_date": "2026-09-01",

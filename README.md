@@ -59,7 +59,7 @@ omnibank:
         banks:
             factory: powens
             options:
-                domain: 'nakaya-sandbox.biapi.pro'               # the client's domain in the Powens console
+                domain: 'example-sandbox.biapi.pro'              # the client's domain in the Powens console
                 client_id: '%env(POWENS_CLIENT_ID)%'
                 client_secret: '%env(POWENS_CLIENT_SECRET)%'
                 redirect_uri: 'https://app.example/bank/back'    # when connect() is given no return URL

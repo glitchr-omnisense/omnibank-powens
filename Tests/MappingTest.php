@@ -44,7 +44,7 @@ final class MappingTest extends TestCase
         });
 
         return (new PowensGatewayFactory($http))->create($options + [
-            'domain' => 'nakaya-sandbox.biapi.pro',
+            'domain' => 'example-sandbox.biapi.pro',
             'client_id' => '12345678',
             'client_secret' => 'pwns_secret',
             'webhook_secret' => self::SECRET,
