@@ -10,6 +10,42 @@ consent must be renewed.
 > (`docker compose run --rm omnibank connect powens` in `omnisense/omnibank`'s `docker/`) before
 > relying on it, and drop this notice once it holds - the webhook signature above all.
 
+## Install and a first call
+
+```sh
+composer require omnibank/powens
+```
+
+No account for this first call: Powens's answer is recorded (Symfony's `MockHttpClient` answers in
+place of the API), so nothing leaves the process. With your own credentials, give the factory your
+HTTP client (or none: it makes its own).
+
+```php
+<?php
+
+require __DIR__.'/vendor/autoload.php';
+
+use Omnibank\Model\Connection;
+use Omnibank\Powens\PowensGatewayFactory;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
+
+// Powens' two answers (a user and its token, then a temporary code), recorded: no account, and nothing leaves the process.
+$http = new MockHttpClient([
+    new MockResponse('{"auth_token": "not-a-token", "type": "permanent", "id_user": 1987}'),
+    new MockResponse('{"code": "tmp_8fR2mWq1ZpL0", "type": "temporary", "access": "single", "expires_in": 1800}'),
+]);
+$gateway = (new PowensGatewayFactory($http))->create(['domain' => 'example-sandbox.biapi.pro', 'client_id' => '12345678', 'client_secret' => 'not-a-secret']);
+
+$result = $gateway->connect(new Connection(), 'https://app.example/bank/back');
+echo $result->url, "\n";   // the Webview, where the user picks a bank; keep $result->connection
+```
+
+A real connection needs a Powens client: a domain, a client id and secret (below). Unverified: see
+above.
+
+## Configuration
+
 ```php
 $gateway = (new PowensGatewayFactory($http))->create(['domain' => '...', 'client_id' => '...', 'client_secret' => '...']);   // $http: the application's HTTP client; none given, the factory makes its own
 ```
